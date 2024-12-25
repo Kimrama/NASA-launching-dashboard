@@ -12,16 +12,27 @@ on:
 
 jobs:
     build:
-        runs-on: windows-latest
-
+        env:
+            CI: true
+            MONGO_URL: mongodb://localhost/nasa
+        strategy:
+            matrix:
+                node-version: [14.x, 16.x]
+                mongodb-version: ["4.4"]
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
 
-            - name: Set up Node.js
+            - name: Set up Node.js version ${{matrix.node-version}}
               uses: actions/setup-node@v3
               with:
-                  node-version: "20"
+                  node-version: ${{matrix.node-version}}
+
+            - name: MongoDB in GitHub Actions
+              uses: supercharge/mongodb-github-action@v1.10.0
+              with:
+                  mongodb-version: ${{matrix.mongodb-version}}
 
             - name: Install client dependencies
               run: |
@@ -32,3 +43,8 @@ jobs:
               run: |
                   cd client
                   npm run build
+
+            - name: test client
+              run: |
+                  cd client
+                  npm run test
